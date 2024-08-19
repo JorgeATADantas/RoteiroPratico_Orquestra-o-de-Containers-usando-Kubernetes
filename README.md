@@ -9,6 +9,50 @@ Roteiro Prático Desenvolvido no âmbito da matéria de Engenharia de Software I
 # Visão Geral
 Neste guia, vamos demonstrar como orquestrar containers usando Kubernetes. Vamos criar um cluster Kubernetes local com Minikube e implantar uma aplicação simples composta por um frontend e um backend.
 
+# Introdução
+## Containers (Docker):
+Antes de começar a orquestrar containers com Kubernetes, é importante entender os conceitos fundamentais de containers, especialmente usando Docker, que é uma das tecnologias de containers mais populares.
+Um container é uma unidade leve e portátil que empacota uma aplicação junto com todas as suas dependências (bibliotecas, configurações, etc.) para que ela possa ser executada de forma consistente em qualquer ambiente, seja em desenvolvimento, teste ou produção. Ao contrário de máquinas virtuais (VMs), os containers compartilham o mesmo sistema operacional, tornando-os mais eficientes e rápidos.
+Docker é uma plataforma que facilita a criação, execução e gerenciamento de containers. Ele fornece ferramentas e um formato padrão para empacotar software em containers, permitindo que desenvolvedores e equipes de operações trabalhem de maneira integrada.
+## Conceitos Essenciais do Docker:
+* **Imagem (Image):** Uma imagem é um modelo imutável que define o que será executado dentro de um container. Ela contém tudo o que sua aplicação precisa: código, bibliotecas, variáveis de ambiente, e instruções para a execução. As imagens são criadas a partir de um Dockerfile e podem ser armazenadas em registries (como o Docker Hub).
+* **Container:** Um container é uma instância de uma imagem em execução. Ele é criado a partir de uma imagem e pode ser executado, parado e removido facilmente. Um container pode ser considerado como uma "mini-VP" que roda uma aplicação isolada do sistema anfitrião.
+* **Dockerfile:** Um Dockerfile é um arquivo de texto que contém as instruções necessárias para construir uma imagem Docker. Ele define a base da imagem, as dependências da aplicação, as portas expostas, e o comando que deve ser executado ao iniciar o container.
+* **Docker CLI (Interface de Linha de Comando):** A CLI do Docker é usada para interagir com o Docker, desde a criação de imagens até o gerenciamento de containers.
+    * _Comandos básicos:_
+      * **docker build:** Cria uma imagem a partir de um Dockerfile.
+      * **docker run:** Executa um container a partir de uma imagem.
+      * **docker ps:** Lista os containers em execução.
+      * **docker stop:** Para um container em execução.
+      * **docker pull:** Baixa uma imagem de um registry (por exemplo, Docker Hub).
+      * **docker push:** Envia uma imagem para um registry.
+* **Volumes:** Volumes são usados para persistir dados gerados ou usados pelos containers. Ao contrário do sistema de arquivos temporário dos containers, os volumes permitem que os dados sejam mantidos mesmo que o container seja removido.
+* **Network:** O Docker também gerencia redes de containers, permitindo a comunicação entre diferentes containers e com o mundo externo. Ele oferece diferentes drivers de rede (bridge, host, none, etc.) para atender a necessidades específicas.
+
+Por Que Entender Docker é Importante para Kubernetes?
+Kubernetes é uma solução de orquestração de containers, e a maioria dos clusters de Kubernetes usa Docker como o runtime padrão de containers. Ao entender os conceitos básicos de Docker, você estará mais preparado para trabalhar com Kubernetes, já que muitos dos conceitos (como containers, imagens, volumes, e redes) são utilizados em ambas as tecnologias.
+
+## O que é Kubernetes:
+Kubernetes (também conhecido como K8s) é uma plataforma open-source projetada para automatizar a implantação, escalonamento e gerenciamento de aplicações containerizadas. Inicialmente desenvolvido pelo Google e atualmente mantido pela Cloud Native Computing Foundation (CNCF), Kubernetes permite que você gerencie clusters de containers em uma infraestrutura distribuída. Ele organiza e coordena como os containers são executados em um ambiente de produção, simplificando operações complexas como alta disponibilidade, escalabilidade e recuperação de falhas.
+## Principais componentes do Kubernetes:
+* **Pod:** A menor unidade no Kubernetes, que agrupa um ou mais containers e compartilha recursos como rede e armazenamento.
+* **Node:** Uma máquina virtual ou física que executa Pods.
+* **Cluster:** Conjunto de Nodes gerenciados pelo plano de controle do Kubernetes.
+* **Service:** Um recurso que define como expor um grupo de Pods como um serviço de rede.
+  ![image](https://github.com/user-attachments/assets/ad3a160f-4cf3-4cd7-853b-8a2f25988332)
+
+## Vantagens de usar Kubernetes para orquestração de containers.
+O Kubernetes é uma das soluções mais populares e robustas para gerenciar aplicações baseadas em containers em escala, proporcionando maior controle, automação e confiabilidade. Dentre suas vantagens, tem-se:
+* **Automatização e Escalabilidade:** Kubernetes permite que você escale automaticamente suas aplicações, ajustando o número de réplicas de containers conforme a carga de trabalho aumenta ou diminui. Suporta escalonamento horizontal (adicionar mais réplicas de Pods) com facilidade.
+* **Autocorreção e Alta Disponibilidade:** Kubernetes detecta falhas de containers e automaticamente reinicia, substitui ou redistribui os Pods conforme necessário, garantindo que suas aplicações permaneçam disponíveis. Utiliza balanceamento de carga para distribuir o tráfego de forma eficiente.
+* **Gerenciamento Simplificado de Configurações:** Permite o gerenciamento centralizado de configurações sensíveis e variáveis de ambiente usando ConfigMaps e Secrets. Facilita a atualização de aplicações com "rolling updates" sem tempo de inatividade perceptível.
+* **Orquestração Multi-Plataforma:** Kubernetes é independente de plataforma, podendo ser executado em ambientes on-premises, em várias nuvens (multicloud) ou em arquiteturas híbridas. Suporta integrações com diferentes soluções de armazenamento e rede.
+* **Implantação Consistente e Portável:** As aplicações containerizadas são facilmente portáveis entre diferentes ambientes, desde desenvolvimento até produção. Kubernetes oferece uma forma padronizada de gerenciar e implantar aplicações, independentemente de onde estejam rodando.
+* **Eficiência no Uso de Recursos:** Kubernetes distribui e otimiza automaticamente os recursos entre os containers, garantindo o uso eficiente da infraestrutura subjacente.
+* **Gerenciamento de Tráfego e Networking:** Suporta roteamento avançado de tráfego, com controle granular sobre o tráfego entre serviços usando Ingress e políticas de rede. Permite a implementação de balanceamento de carga interno e externo.
+* **Comunidade e Ecossistema Vibrante:** Kubernetes possui uma comunidade ativa e um vasto ecossistema de ferramentas e extensões (como Helm, Prometheus, Istio), facilitando a adoção e expansão de sua infraestrutura.
+
+
 # Pré-requisitos
 * **Git:** Para clonar o repositório.
 * **Docker:** Para construir e rodar containers localmente.
@@ -26,89 +70,14 @@ Neste guia, vamos demonstrar como orquestrar containers usando Kubernetes. Vamos
 - Acesse https://github.com/kubernetes/minikube/releases
 - Baixe e instale versão de acordo com seu Sistema Operacinal
 #### Kubectl:
-#### _**A) Windows**_
-*  Baixar o Executável
-Vá para a página de lançamentos do Kubernetes.
-Baixe o arquivo kubectl para Windows. Você pode baixar o binário diretamente ou usar o instalador via choco (Chocolatey) se estiver disponível.
-Usando o Instalador Chocolatey:
-
-Se você tem o Chocolatey instalado, execute o seguinte comando no PowerShell:
-
-powershell
-Copiar código
-choco install kubernetes-cli
-Usando o Binário Direto:
-
-Baixe o arquivo do binário e coloque-o em um diretório no seu PATH.
-Adicionar ao PATH
-
-Se você baixou o binário diretamente, adicione o diretório ao PATH. Isso pode ser feito no Painel de Controle -> Sistema e Segurança -> Sistema -> Configurações avançadas do sistema -> Variáveis de ambiente, e adicione o caminho do diretório onde kubectl.exe está localizado.
-Verificar a Instalação
-
-Abra o Prompt de Comando ou PowerShell e execute:
-
-powershell
-Copiar código
-kubectl version --client
-Isso deve exibir a versão do kubectl instalada.
-
-1.2. macOS
-Passos de Instalação
-Usar Homebrew
-
-Se você não tem o Homebrew instalado, você pode instalá-lo com o comando:
-
-bash
-Copiar código
-/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-Instale o kubectl usando Homebrew:
-
-bash
-Copiar código
-brew install kubectl
-Verificar a Instalação
-
-Abra o Terminal e execute:
-
-bash
-Copiar código
-kubectl version --client
-Isso deve exibir a versão do kubectl instalada.
-
-1.3. Linux
-Ubuntu/Debian
-Instalar o kubectl usando o Repositório APT
-
-Atualize o índice de pacotes e adicione a chave do repositório:
-
-bash
-Copiar código
-sudo apt update
-sudo apt install -y apt-transport-https ca-certificates curl
-Adicione o repositório do Kubernetes:
-
-bash
-Copiar código
-curl -fsSL https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key add -
-sudo sh -c 'echo "deb https://apt.kubernetes.io/ kubernetes-xenial main" > /etc/apt/sources.list.d/kubernetes.list'
-Instale o kubectl:
-
-bash
-Copiar código
-sudo apt update
-sudo apt install -y kubectl
-Verificar a Instalação
-
-Abra o Terminal e execute:
-
-bash
-Copiar código
-kubectl version --client
-Isso deve exibir a versão do kubectl instalada.
-
+- Acesse https://kubernetes.io/docs/tasks/tools/
+- Baixe e instale versão de acordo com seu Sistema Operacinal
 #### Node.js e npm:
+- Acesse https://nodejs.org/pt
+- Baixe e instale versão de acordo com seu Sistema Operacinal
 
-1.2. Inicialização do Minikube
+### 1.2. Inicialização do Minikube
+
 bash
 Copiar código
 minikube start
