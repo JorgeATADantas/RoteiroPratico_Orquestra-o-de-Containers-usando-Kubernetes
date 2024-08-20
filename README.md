@@ -1,4 +1,4 @@
-# RoteiroPratico_Orquestra-o-de-Containers-usando-Kubernetes
+# RoteiroPratico: Orquestrando containers usando Kubernetes
 Roteiro Prático Desenvolvido no âmbito da matéria de Engenharia de Software I do CEFET-MG
 
 # Grupo:
@@ -54,112 +54,252 @@ O Kubernetes é uma das soluções mais populares e robustas para gerenciar apli
 
 
 # Pré-requisitos
-* **Git:** Para clonar o repositório.
-* **Docker:** Para construir e rodar containers localmente.
 * **Minikube:** Para criar e gerenciar um cluster Kubernetes local.
 * **Kubectl:** Ferramenta de linha de comando para interagir com o cluster Kubernetes.
-* **Node.js e npm:** Necessário para a aplicação de exemplo (Frontend e Backend).
 
 # Passos
 ## 1. Configuração do Ambiente
 ### 1.1. Instalação de Ferramentas
-#### Docker:
-- Acesse https://www.docker.com/ 
-- Baixe e instale versão de acordo com seu Sistema Operacinal
 #### Minikube:
 - Acesse https://github.com/kubernetes/minikube/releases
 - Baixe e instale versão de acordo com seu Sistema Operacinal
 #### Kubectl:
 - Acesse https://kubernetes.io/docs/tasks/tools/
 - Baixe e instale versão de acordo com seu Sistema Operacinal
-#### Node.js e npm:
-- Acesse https://nodejs.org/pt
-- Baixe e instale versão de acordo com seu Sistema Operacinal
 
 ### 1.2. Inicialização do Minikube
 
-bash
-Copiar código
+Para iniciar o cluster Kubernetes local, abra um terminal com acesso de administrador (mas não como root) e execute:
+
+```bash
 minikube start
-2. Configuração do Projeto
-2.1. Estrutura do Repositório
-Clone o repositório com o exemplo prático:
+```
 
-bash
-Copiar código
-git clone https://github.com/seu-usuario/exemplo-kubernetes.git
-cd exemplo-kubernetes
-2.2. Estrutura do Projeto
-Dentro do repositório, você deve encontrar a seguinte estrutura:
+Se o Minikube não iniciar corretamente, consulte a [página de drivers](https://minikube.sigs.k8s.io/docs/drivers/) para obter ajuda sobre como configurar um gerenciador de contêineres ou máquina virtual compatível.
 
-css
-Copiar código
-exemplo-kubernetes/
-├── frontend/
-│   ├── Dockerfile
-│   ├── src/
-│   └── package.json
-├── backend/
-│   ├── Dockerfile
-│   ├── src/
-│   └── package.json
-├── kubernetes/
-│   ├── frontend-deployment.yaml
-│   ├── frontend-service.yaml
-│   ├── backend-deployment.yaml
-│   └── backend-service.yaml
-└── README.md
-3. Construção e Execução dos Containers
-3.1. Construir Imagens Docker
-Navegue para as pastas frontend e backend e construa as imagens:
+## 2. Interaja com Seu Cluster
 
-bash
-Copiar código
-cd frontend
-docker build -t meu-frontend:1.0 .
-cd ../backend
-docker build -t meu-backend:1.0 .
-3.2. Testar Localmente
-Você pode testar as imagens localmente para garantir que tudo está funcionando:
+Se você já tem o `kubectl` instalado, pode usá-lo para acessar seu novo cluster:
 
-bash
-Copiar código
-docker run -p 3000:3000 meu-frontend:1.0
-docker run -p 5000:5000 meu-backend:1.0
-4. Deploy no Kubernetes
-4.1. Aplicar Configurações Kubernetes
-Aplique os arquivos de configuração Kubernetes:
+```bash
+kubectl get po -A
+```
 
-bash
-Copiar código
-kubectl apply -f kubernetes/frontend-deployment.yaml
-kubectl apply -f kubernetes/frontend-service.yaml
-kubectl apply -f kubernetes/backend-deployment.yaml
-kubectl apply -f kubernetes/backend-service.yaml
-4.2. Verificar o Status
-Verifique se os pods estão em execução:
+Como alternativa, o Minikube pode baixar a versão apropriada do `kubectl` para você, permitindo o uso do comando:
 
-bash
-Copiar código
-kubectl get pods
-Verifique os serviços expostos:
+```bash
+minikube kubectl -- get po -A
+```
 
-bash
-Copiar código
-kubectl get services
-5. Testar a Aplicação
-5.1. Acessar a Aplicação
-Para acessar a aplicação, use o comando:
+Para facilitar ainda mais, adicione o seguinte comando à configuração do seu shell (para mais detalhes, consulte a [documentação do kubectl](https://kubernetes.io/docs/reference/kubectl/)):
 
-bash
-Copiar código
-minikube service frontend-service
-Isso abrirá a aplicação frontend no navegador padrão. O frontend se comunicará com o backend, que também deve estar acessível através de um serviço Kubernetes.
+```bash
+alias kubectl="minikube kubectl --"
+```
 
-6. Conclusão
-Neste guia, você aprendeu como orquestrar containers usando Kubernetes. Você construiu e implantou uma aplicação simples com um frontend e um backend, e acessou a aplicação rodando em um cluster Kubernetes local.
+Inicialmente, alguns serviços como o `storage-provisioner` podem não estar em estado `Running`. Isso é normal durante a inicialização do cluster e deve se resolver em breve. Para obter mais informações sobre o estado do seu cluster, o Minikube inclui o Kubernetes Dashboard, que permite explorar facilmente seu ambiente:
 
-Links Úteis
-Documentação do Kubernetes
-Documentação do Minikube
-Documentação do Docker
+```bash
+minikube dashboard
+```
+
+## 3. Implante Aplicações
+
+### 3.1. Serviço Simples
+
+Crie uma implantação de exemplo e exponha-a na porta 8080:
+
+```bash
+kubectl create deployment hello-minikube --image=kicbase/echo-server:1.0
+kubectl expose deployment hello-minikube --type=NodePort --port=8080
+```
+
+Pode levar algum tempo, mas sua implantação aparecerá quando você executar:
+
+```bash
+kubectl get services hello-minikube
+```
+
+A maneira mais fácil de acessar este serviço é deixar o Minikube abrir um navegador da web para você:
+
+```bash
+minikube service hello-minikube
+```
+
+Como alternativa, use o `kubectl` para encaminhar a porta:
+
+```bash
+kubectl port-forward service/hello-minikube 7080:8080
+```
+
+Sua aplicação agora está disponível em `http://localhost:7080/`. Experimente alterar o caminho da solicitação e observe as mudanças na saída da aplicação.
+
+### 3.2. LoadBalancer
+
+Para acessar uma implantação LoadBalancer, use o comando `minikube tunnel`. Aqui está um exemplo de implantação:
+
+```bash
+kubectl create deployment balanced --image=kicbase/echo-server:1.0
+kubectl expose deployment balanced --type=LoadBalancer --port=8080
+```
+
+Em outra janela, inicie o túnel para criar um IP roteável para a implantação `balanced`:
+
+```bash
+minikube tunnel
+```
+
+Para encontrar o IP roteável, execute este comando e examine a coluna `EXTERNAL-IP`:
+
+```bash
+kubectl get services balanced
+```
+
+Sua implantação agora está disponível em `<EXTERNAL-IP>:8080`.
+
+### 3.3. Ingress
+
+Habilite o complemento de Ingress:
+
+```bash
+minikube addons enable ingress
+```
+
+O exemplo a seguir cria serviços `echo-server` simples e um objeto Ingress para roteá-los.
+
+```yaml
+kind: Pod
+apiVersion: v1
+metadata:
+  name: foo-app
+  labels:
+    app: foo
+spec:
+  containers:
+    - name: foo-app
+      image: 'kicbase/echo-server:1.0'
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: foo-service
+spec:
+  selector:
+    app: foo
+  ports:
+    - port: 8080
+---
+kind: Pod
+apiVersion: v1
+metadata:
+  name: bar-app
+  labels:
+    app: bar
+spec:
+  containers:
+    - name: bar-app
+      image: 'kicbase/echo-server:1.0'
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: bar-service
+spec:
+  selector:
+    app: bar
+  ports:
+    - port: 8080
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: example-ingress
+spec:
+  rules:
+    - http:
+        paths:
+          - pathType: Prefix
+            path: /foo
+            backend:
+              service:
+                name: foo-service
+                port:
+                  number: 8080
+          - pathType: Prefix
+            path: /bar
+            backend:
+              service:
+                name: bar-service
+                port:
+                  number: 8080
+```
+
+Aplicar o conteúdo:
+
+```bash
+kubectl apply -f https://storage.googleapis.com/minikube-site-examples/ingress-example.yaml
+```
+
+Aguarde pelo endereço de ingress:
+
+```bash
+kubectl get ingress
+```
+
+Para usuários do Docker Desktop:
+Para que o ingress funcione, você precisará abrir uma nova janela de terminal e executar `minikube tunnel`. No passo seguinte, use `127.0.0.1` no lugar de `<ip_from_above>`.
+
+Agora, verifique se o ingress funciona:
+
+```bash
+curl <ip_from_above>/foo
+```
+
+```bash
+curl <ip_from_above>/bar
+```
+
+## 4. Gerencie Seu Cluster
+
+Pause o Kubernetes sem impactar as aplicações implantadas:
+
+```bash
+minikube pause
+```
+
+Despausa uma instância pausada:
+
+```bash
+minikube unpause
+```
+
+Interrompa o cluster:
+
+```bash
+minikube stop
+```
+
+Altere o limite de memória padrão (requer reinicialização):
+
+```bash
+minikube config set memory 9001
+```
+
+Navegue pelo catálogo de serviços Kubernetes facilmente instalados:
+
+```bash
+minikube addons list
+```
+
+Crie um segundo cluster executando uma versão mais antiga do Kubernetes:
+
+```bash
+minikube start -p aged --kubernetes-version=v1.16.1
+```
+
+Exclua todos os clusters Minikube:
+
+```bash
+minikube delete --all
+```
+
