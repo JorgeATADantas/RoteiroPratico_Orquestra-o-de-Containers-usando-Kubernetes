@@ -302,4 +302,5 @@ Exclua todos os clusters Minikube:
 ```bash
 minikube delete --all
 ```
-
+# Agradecimentos
+Ao longo deste roteiro, exploramos os conceitos fundamentais do Kubernetes e vimos como essa poderosa ferramenta pode transformar a forma como desenvolvemos e implantamos aplicações. Ao conhecer o Kubernetes, você estará apto a criar sistemas mais escaláveis, resilientes e eficientes. Qualquer dúvida ou aprimoramentos entre em contato. Obrigado
